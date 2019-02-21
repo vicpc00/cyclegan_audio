@@ -6,10 +6,9 @@ from util.visualizer import Visualizer
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()
-    data_loader = CreateDataLoader(opt)
-    dataset = data_loader.load_data()
-    dataset_size = len(data_loader)
-    print('#training images = %d' % dataset_size)
+    dataset = create_dataset(opt)
+    dataset_size = len(dataset)
+    print('#training specs = %d' % dataset_size)
 
     model = create_model(opt)
     model.setup(opt)

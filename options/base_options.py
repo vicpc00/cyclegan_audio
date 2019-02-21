@@ -81,6 +81,11 @@ class BaseOptions():
         dataset_option_setter = data.get_option_setter(dataset_name)
         parser = dataset_option_setter(parser, self.isTrain)
 
+        # modify vocoder-related parser options
+        vocoder_name = opt.vocoder
+        vocoder_option_setter = audio.get_option_setter(vocoder_name)
+        parser = vocoder_option_setter(parser, self.isTrain)
+
         # save and return the parser
         self.parser = parser
         return parser.parse_args()

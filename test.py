@@ -14,8 +14,7 @@ if __name__ == '__main__':
     opt.serial_batches = True  # no shuffle
     opt.no_flip = True    # no flip
     opt.display_id = -1   # no visdom display
-    data_loader = CreateDataLoader(opt)
-    dataset = data_loader.load_data()
+    dataset = create_dataset(opt)
     model = create_model(opt)
     model.setup(opt)
     # create a website
