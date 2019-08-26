@@ -15,8 +15,8 @@ class BaseVocoder(ABC):
 
     To create a subclass, you need to implement the following four functions:
     -- <__init__>:                      initialize the class, first call BaseVocoder.__init__(self, opt).
-    -- <__len__>:                       return the size of vocoder.
-    -- <__getitem__>:                   get a data point.
+    -- <analysis>:                      Extract parameters from speech
+    -- <synthesize>:                    Synthesize the speech from parameters
     -- <modify_commandline_options>:    (optionally) add vocoder-specific options and set default options.
     """
 
@@ -41,6 +41,16 @@ class BaseVocoder(ABC):
         """
         return parser
 
+    @abstractmethod
+    def analysis(self, in_filename, out_filename):
+        """Analyse the audio.
+        
+        Parameters:
+            in_filename     -- File containing the audio
+
+        Returns:
+            A dictionary containing the relevant parameters.
+        """
     @abstractmethod
     def synthesize(self, in_filename, out_filename):
         """Synthesize the audio.
