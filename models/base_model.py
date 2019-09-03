@@ -38,9 +38,9 @@ class BaseModel(ABC):
             torch.backends.cudnn.benchmark = True
         self.loss_names = []
         self.model_names = []
-        self.visual_names = []
+        self.signal_names = []
         self.optimizers = []
-        self.image_paths = []
+        self.signal_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
 
     @staticmethod
@@ -109,9 +109,9 @@ class BaseModel(ABC):
         """Calculate additional output images for visdom and HTML visualization"""
         pass
 
-    def get_image_paths(self):
-        """ Return image paths that are used to load current data"""
-        return self.image_paths
+    def get_signal_paths(self):
+        """ Return signal paths that are used to load current data"""
+        return self.signal_paths
 
     def update_learning_rate(self):
         """Update learning rates for all the networks; called at the end of every epoch"""
@@ -120,13 +120,13 @@ class BaseModel(ABC):
         lr = self.optimizers[0].param_groups[0]['lr']
         print('learning rate = %.7f' % lr)
 
-    def get_current_visuals(self):
-        """Return visualization images. train.py will display these images with visdom, and save the images to a HTML"""
-        visual_ret = OrderedDict()
-        for name in self.visual_names:
+    def get_current_signals(self):
+        """Return signals. train.py will display these images with visdom, and save the images to a HTML"""
+        signal_ret = OrderedDict()
+        for name in self.signal_names:
             if isinstance(name, str):
-                visual_ret[name] = getattr(self, name)
-        return visual_ret
+                signal_ret[name] = getattr(self, name)
+        return signal_ret
 
     def get_current_losses(self):
         """Return traning losses / errors. train.py will print out these errors on console, and save them to a file"""

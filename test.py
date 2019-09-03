@@ -1,6 +1,6 @@
 import os
 from options.test_options import TestOptions
-from data import CreateDataLoader
+from data import create_dataloader
 from models import create_model
 from util.visualizer import save_images, save_specs
 from util import html
@@ -14,7 +14,7 @@ if __name__ == '__main__':
     opt.serial_batches = True  # no shuffle
     opt.no_flip = True    # no flip
     opt.display_id = -1   # no visdom display
-    dataset = create_dataset(opt)
+    dataset = create_dataloader(opt)
     model = create_model(opt)
     model.setup(opt)
     # create a website

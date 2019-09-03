@@ -1,12 +1,12 @@
 import time
 from options.train_options import TrainOptions
-from data import CreateDataLoader
+from data import create_dataloader
 from models import create_model
 from util.visualizer import Visualizer
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()
-    dataset = create_dataset(opt)
+    dataset = create_dataloader(opt)
     dataset_size = len(dataset)
     print('#training specs = %d' % dataset_size)
 
@@ -27,12 +27,20 @@ if __name__ == '__main__':
             visualizer.reset()
             total_steps += opt.batch_size
             epoch_iter += opt.batch_size
-            model.set_input(data)
+            
+            #Create datapoint with just time-freq representation
+            data_spec = data.copy()
+            data_spec['A'] = data_spec['A']['tf_rep']
+            data_spec['B'] = data_spec['B']['tf_rep']
+            
+            model.set_input(data_spec)
             model.optimize_parameters()
 
+            """
             if total_steps % opt.display_freq == 0:
                 save_result = total_steps % opt.update_html_freq == 0
                 visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
+            """
 
             if total_steps % opt.print_freq == 0:
                 losses = model.get_current_losses()

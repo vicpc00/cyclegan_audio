@@ -28,14 +28,14 @@ class CycleGANModel(BaseModel):
 
         # specify the training losses you want to print out. The program will call base_model.get_current_losses
         self.loss_names = ['D_A', 'G_A', 'cycle_A', 'idt_A', 'D_B', 'G_B', 'cycle_B', 'idt_B']
-        # specify the images you want to save/display. The program will call base_model.get_current_visuals
-        visual_names_A = ['real_A', 'fake_B', 'rec_A']
-        visual_names_B = ['real_B', 'fake_A', 'rec_B']
+        # specify the signals you want to save/display. The program will call base_model.get_current_signal
+        signals_names_A = ['real_A', 'fake_B', 'rec_A']
+        signals_names_B = ['real_B', 'fake_A', 'rec_B']
         if self.isTrain and self.opt.lambda_identity > 0.0:
-            visual_names_A.append('idt_A')
-            visual_names_B.append('idt_B')
+            signals_names_A.append('idt_A')
+            signals_names_B.append('idt_B')
 
-        self.visual_names = visual_names_A + visual_names_B
+        self.signals_names = signals_names_A + signals_names_B
         # specify the models you want to save to the disk. The program will call base_model.save_networks and base_model.load_networks
         if self.isTrain:
             self.model_names = ['G_A', 'G_B', 'D_A', 'D_B']
@@ -77,7 +77,7 @@ class CycleGANModel(BaseModel):
         AtoB = self.opt.direction == 'AtoB'
         self.real_A = input['A' if AtoB else 'B'].to(self.device)
         self.real_B = input['B' if AtoB else 'A'].to(self.device)
-        self.image_paths = input['A_paths' if AtoB else 'B_paths']
+        self.signal_paths = input['A_paths' if AtoB else 'B_paths']
 
     def forward(self):
         self.fake_B = self.netG_A(self.real_A)

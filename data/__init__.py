@@ -44,7 +44,7 @@ def get_option_setter(dataset_name):
     return dataset_class.modify_commandline_options
 
 
-def create_dataset(opt):
+def create_dataloader(opt):
     """Create a dataset given the option.
 
     This function wraps the class CustomDatasetDataLoader.
@@ -58,6 +58,11 @@ def create_dataset(opt):
     dataset = data_loader.load_data()
     return dataset
 
+def create_dataset(opt):
+    dataset_class = find_dataset_using_name(dataset_name)
+    dataset = dataset_class(opt)
+    print("dataset [%s] was created" % (instance.name()))
+    return dataset
 
 class CustomDatasetDataLoader():
     """Wrapper class of Dataset class that performs multi-threaded data loading"""
@@ -69,14 +74,13 @@ class CustomDatasetDataLoader():
         Step 2: create a multi-threaded data loader.
         """
         self.opt = opt
-        dataset_class = find_dataset_using_name(opt.dataset_mode)
-        self.dataset = dataset_class(opt)
-        print("dataset [%s] was created" % type(self.dataset).__name__)
+        self.dataset = create_dataset(opt)
         self.dataloader = torch.utils.data.DataLoader(
             self.dataset,
             batch_size=opt.batch_size,
             shuffle=not opt.serial_batches,
-            num_workers=int(opt.num_threads))
+            num_workers=int(opt.num_threads)
+            collate_fn = collate_fn)
 
     def load_data(self):
         return self
@@ -91,3 +95,21 @@ class CustomDatasetDataLoader():
             if i * self.opt.batch_size >= self.opt.max_dataset_size:
                 break
             yield data
+
+def collate_fn(data):
+    
+    #Convert a list of dictionaries into a dictionar of lists. Each dictionary in the list should have the same keys
+    data_dict = {key: [dic[key] for dic in data] for key in data[0]}
+    
+    for k in ['A','B']:
+        tmp = {key: [dic[key] for dic in data_dict[k]] for key in data_dict[k][0]}
+        data_dict[k] = tmp
+            
+        for m in ['tf_rep']:
+            data_dict[k][m] = [torch.as_tensor(data_dict[k][m][n]) for n in data_dict[k][m]]
+            
+            #TODO Pad tensors when they have different sizes
+            data_dict[k][m] = torch.stack(data_dict[k][m],dim=0)
+            
+            
+    return data_dict
