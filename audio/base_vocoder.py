@@ -1,11 +1,10 @@
 """This module implements an abstract base class (ABC) 'BaseVocoder' for vocoders.
 
-It also includes common transformation functions (e.g., get_transform, __scale_width), which can be later used in subclasses.
+It also includes common transformation functions (e.g., amp_to_db_norm, db_to_amp_norm), which can be later used in subclasses.
 """
 import random
 import numpy as np
 import torch.utils.data as data
-from PIL import Image
 import torchvision.transforms as transforms
 from abc import ABC, abstractmethod
 
@@ -59,26 +58,33 @@ class BaseVocoder(ABC):
             in_filename     -- File containing the spectogram
             out_filename    -- Where to save the result"""
         
-    def amp_to_db_norm(spec):
-        min_level_db = self.opt.min_level_db
-        ref_level_db = self.opt.ref_level_db
+    def amp_to_db_norm(self,spec):
+        #min_level_db = self.opt.min_level_db
+        #ref_level_db = self.opt.ref_level_db
+        min_level_db = -100
+        ref_level_db = 20
         
         min_level = np.exp(np.log(10)*min_level_db/20)
         
         spec = 20*np.log(np.maximum(spec,min_level))/np.log(10) - ref_level_db
         spec = (spec - min_level_db)/-min_level_db
         spec = np.clip(spec,0,1)
+
+        return spec
         
         
-    def db_to_amp_norm(spec):
-        min_level_db = self.opt.min_level_db
-        ref_level_db = self.opt.ref_level_db
+    def db_to_amp_norm(self,spec):
+        #min_level_db = self.opt.min_level_db
+        #ref_level_db = self.opt.ref_level_db
+        min_level_db = -100
+        ref_level_db = 20
 
         spec = np.clip(spec,0,1)
 
         spec = spec*(-min_level_db)+min_level_db+ref_level_db
         
         spec = np.exp(spec/20*np.log(10))
+
         return spec
 
 

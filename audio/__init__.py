@@ -1,4 +1,5 @@
 import importlib
+from audio.base_vocoder import BaseVocoder
 
 
 def find_vocoder_using_name(vocoder_name):
