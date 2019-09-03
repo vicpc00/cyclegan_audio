@@ -41,13 +41,13 @@ class GriffinLimVocoder(BaseVocoder):
         print(S)
         S = self.amp_to_db_norm(S)
 
-        signal_dict['C']  = S
+        signal_dict['tf_rep']  = S
 
         return signal_dict
     
     def synthesize(self, signal_dict, out_filename):
         #signal_dict = np.load(in_filename)
-        mag_spec = self.db_to_amp_norm(signal_dict['C'])
+        mag_spec = self.db_to_amp_norm(signal_dict['tf_rep'])
         
         n_win = mag_spec.shape[1]
         sig_len = int((n_win-1)*self.hop_len)
