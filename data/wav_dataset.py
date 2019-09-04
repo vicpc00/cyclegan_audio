@@ -1,7 +1,7 @@
 import os.path
 from data.base_dataset import BaseDataset, get_transform
 #from data.image_folder import make_dataset
-from data.spec_folder import make_dataset
+from data.wav_folder import make_dataset
 from audio import create_vocoder
 from PIL import Image
 import numpy as np
@@ -16,7 +16,7 @@ class WavDataset(BaseDataset):
     def modify_commandline_options(parser, is_train):
         return parser
 
-    def initialize(self, opt):
+    def __init__(self, opt):
         self.opt = opt
         self.root = opt.dataroot
         self.dir_A = os.path.join(opt.dataroot, opt.phase + 'A')
@@ -32,7 +32,7 @@ class WavDataset(BaseDataset):
         #self.transform = get_transform(opt)
         self.transform = default_adjust
         self.vocoder = create_vocoder(opt)
-
+        
     def __getitem__(self, index):
         A_path = self.A_paths[index % self.A_size]
         if self.opt.serial_batches:

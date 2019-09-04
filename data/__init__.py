@@ -59,9 +59,9 @@ def create_dataloader(opt):
     return dataset
 
 def create_dataset(opt):
-    dataset_class = find_dataset_using_name(dataset_name)
+    dataset_class = find_dataset_using_name(opt.dataset_mode)
     dataset = dataset_class(opt)
-    print("dataset [%s] was created" % (instance.name()))
+    print("dataset [%s] was created" % (dataset.name()))
     return dataset
 
 class CustomDatasetDataLoader():
@@ -79,7 +79,7 @@ class CustomDatasetDataLoader():
             self.dataset,
             batch_size=opt.batch_size,
             shuffle=not opt.serial_batches,
-            num_workers=int(opt.num_threads)
+            num_workers=int(opt.num_threads),
             collate_fn = collate_fn)
 
     def load_data(self):
@@ -106,7 +106,7 @@ def collate_fn(data):
         data_dict[k] = tmp
             
         for m in ['tf_rep']:
-            data_dict[k][m] = [torch.as_tensor(data_dict[k][m][n]) for n in data_dict[k][m]]
+            data_dict[k][m] = [torch.as_tensor(signal).type(torch.FloatTensor) for signal in data_dict[k][m]]
             
             #TODO Pad tensors when they have different sizes
             data_dict[k][m] = torch.stack(data_dict[k][m],dim=0)
