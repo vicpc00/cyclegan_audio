@@ -31,6 +31,8 @@ class WorldVocoder(BaseVocoder):
         self.nfft = opt.nfft
         if self.nfft is None:
             self.nfft = pw.get_cheaptrick_fft_size(self.sr,self.f0_floor)
+            
+        self.rep_dim = self.mel_dim
 
     def analysis(self, in_filename):
         signal_dict = {}

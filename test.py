@@ -28,13 +28,26 @@ if __name__ == '__main__':
     for i, data in enumerate(dataset):
         if i >= opt.num_test:
             break
+        
+        #Create datapoint with just time-freq representation
+        data_spec = data.copy()
+        data_spec['A'] = data_spec['A']['tf_rep']
+        data_spec['B'] = data_spec['B']['tf_rep']
+        
         model.set_input(data)
         model.test()
-        visuals = model.get_current_visuals()
-        img_path = model.get_image_paths()
+        signals = model.get_current_signals()
+        sig_path = model.get_image_paths()
+        
+        for sig_name in signals.keys():
+            tmp = data['A'].copy()
+            tmp['tf_rep'] = sig[sig_name]
+            sig[sig_name] = tmp
+            
+        
         if i % 5 == 0:
             print('processing (%04d)-th image... %s' % (i, img_path))
         #save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
-        save_specs(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
+        save_specs(webpage, signals, sig_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
     # save the website
     webpage.save()

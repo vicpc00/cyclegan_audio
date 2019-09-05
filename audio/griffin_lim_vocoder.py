@@ -26,6 +26,7 @@ class GriffinLimVocoder(BaseVocoder):
         self.nfft = opt.nfft
         if self.nfft is None or self.nfft < self.win_len:
             self.nfft = self.win_len
+        self.rep_dim = self.nfft
 
     def analysis(self, in_filename):
         signal_dict = {}
