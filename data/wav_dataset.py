@@ -7,9 +7,12 @@ from PIL import Image
 import numpy as np
 import random
 
-def default_adjust(spec):
-    return np.pad(spec,[(0,int(4*np.ceil(spec.shape[0]/4))-spec.shape[0]),(0,int(4*np.ceil(spec.shape[1]/4))-spec.shape[1])],'constant')
-    
+def default_adjust(param, dim=[0,1]):
+    pad = [(0,0)]*param.ndim
+    for d in dim:
+        pad[d] = (0,int(4*np.ceil(param.shape[d]/4))-param.shape[d])
+    return np.pad(param,pad,'constant')
+
 
 class WavDataset(BaseDataset):
     @staticmethod
@@ -44,10 +47,16 @@ class WavDataset(BaseDataset):
         A_signal = self.vocoder.analysis(A_path)
         B_signal = self.vocoder.analysis(B_path)
 
-        A_signal['tf_rep'] = self.transform(A_signal['tf_rep'])
-        B_signal['tf_rep'] = self.transform(B_signal['tf_rep'])
-        A_signal['tf_rep'] = np.expand_dims(A_signal['tf_rep'],axis=0)
-        B_signal['tf_rep'] = np.expand_dims(B_signal['tf_rep'],axis=0)
+        for k in A_signal.keys():
+            #print(k,A_signal[k].shape)
+            if k == 'tf_rep':
+                dim = [0,1]
+            else:
+                dim = [1]
+            A_signal[k] = self.transform(A_signal[k],dim)
+            B_signal[k] = self.transform(B_signal[k],dim)
+            A_signal[k] = np.expand_dims(A_signal[k],axis=0)
+            B_signal[k] = np.expand_dims(B_signal[k],axis=0)
 
         return {'A': A_signal, 'B': B_signal,
                 'A_paths': A_path, 'B_paths': B_path}

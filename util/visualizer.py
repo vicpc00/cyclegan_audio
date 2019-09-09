@@ -45,6 +45,7 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
     webpage.add_images(ims, txts, links, width=width)
 
 def save_specs(webpage, visuals, spec_path, aspect_ratio=1.0, width=256):
+    print(visuals)
     spec_dir = webpage.get_image_dir()
     #print(spec_dir)
     short_path = ntpath.basename(spec_path[0])
@@ -72,6 +73,7 @@ def save_specs(webpage, visuals, spec_path, aspect_ratio=1.0, width=256):
             im = imresize(im, (int(h / aspect_ratio), w), interp='bicubic')
         util.save_image(im, save_path)
         """
+        print(spec_save_path)
         np.save(spec_save_path,spec,allow_pickle=False)
         
         out = plt.pcolormesh(spec)
@@ -84,30 +86,34 @@ def save_specs(webpage, visuals, spec_path, aspect_ratio=1.0, width=256):
         links.append(plot_name)
     webpage.add_images(ims, txts, links, width=width)
 
-def save_specs(webpage, signals, sig_path, vocoder):
-    spec_dir = webpage.get_image_dir()
+def save_signals(webpage, signals, sig_path, vocoder):
+    sig_dir = webpage.get_image_dir()
     #print(spec_dir)
-    short_path = ntpath.basename(spec_path[0])
+    short_path = ntpath.basename(sig_path[0])
     name = os.path.splitext(short_path)[0]
 
     webpage.add_header(name)
     ims, txts, links = [], [], []
     #plt.ioff()
 
-    for label, sig_data in visuals.items():
-        sig_data['tf_rep'] = np.squeeze(sig_data['tf_rep'].cpu().float().numpy())
-        sig_data['f0'] = np.squeeze(sig_data['f0'].cpu().float().numpy())
-        sig_data['ap'] = np.squeeze(sig_data['ap'].cpu().float().numpy())
+    for label, sig_data in signals.items():
+        #TODO Handle batch > 1
+        sig_data['tf_rep'] = np.squeeze(sig_data['tf_rep'].cpu().double().numpy())
+        sig_data['f0'] = np.squeeze(sig_data['f0'].cpu().double().numpy())
+        sig_data['ap'] = np.squeeze(sig_data['ap'].cpu().double().numpy())
+        #sig_data['f0'] = sig_data['f0'][0]
+        #sig_data['ap'] = sig_data['ap'][0]
         spec = sig_data['tf_rep']
         spec = spec[0:vocoder.rep_dim]
         spec_name = '%s_%s.npy' % (name, label)
         plot_name = '%s_%s.png' % (name, label)
         wave_name = '%s_%s.wav' % (name, label)
         #print(name,label,spec_name,plot_name)
-        spec_save_path = os.path.join(spec_dir, spec_name)
-        plot_save_path = os.path.join(spec_dir, plot_name)
-        wave_save_path = os.path.join(spec_dir, wave_name)
+        spec_save_path = os.path.join(sig_dir, spec_name)
+        plot_save_path = os.path.join(sig_dir, plot_name)
+        wave_save_path = os.path.join(sig_dir, wave_name)
 
+        print(wave_save_path)
         np.save(spec_save_path,spec,allow_pickle=False)
         
         out = plt.pcolormesh(spec)
@@ -118,7 +124,8 @@ def save_specs(webpage, signals, sig_path, vocoder):
         ims.append(plot_name)
         txts.append(label)
         links.append(plot_name)
-    webpage.add_images(ims, txts, links, width=width)
+    #webpage.add_images(ims, txts, links, width=width)
+    webpage.add_images(ims, txts, links)
 
 class Visualizer():
     def __init__(self, opt):

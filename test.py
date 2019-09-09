@@ -2,9 +2,9 @@ import os
 from options.test_options import TestOptions
 from data import create_dataloader
 from models import create_model
-from util.visualizer import save_images, save_specs
+from util.visualizer import save_signals
 from util import html
-
+from audio import create_vocoder
 
 if __name__ == '__main__':
     opt = TestOptions().parse()
@@ -17,6 +17,8 @@ if __name__ == '__main__':
     dataset = create_dataloader(opt)
     model = create_model(opt)
     model.setup(opt)
+    vocoder = create_vocoder(opt)
+    original_spk = {'real_A':'A','fake_B':'A','rec_A':'A','real_B':'B','fake_A':'B','rec_B':'B',}
     # create a website
     web_dir = os.path.join(opt.results_dir, opt.name, '%s_%s' % (opt.phase, opt.epoch))
     webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (opt.name, opt.phase, opt.epoch))
@@ -34,20 +36,20 @@ if __name__ == '__main__':
         data_spec['A'] = data_spec['A']['tf_rep']
         data_spec['B'] = data_spec['B']['tf_rep']
         
-        model.set_input(data)
+        model.set_input(data_spec)
         model.test()
         signals = model.get_current_signals()
-        sig_path = model.get_image_paths()
-        
+        sig_path = model.get_signal_paths()
+
         for sig_name in signals.keys():
-            tmp = data['A'].copy()
-            tmp['tf_rep'] = sig[sig_name]
-            sig[sig_name] = tmp
-            
-        
+            tmp = data[original_spk[sig_name]].copy()
+            tmp['tf_rep'] = signals[sig_name]
+            signals[sig_name] = tmp
+
+
         if i % 5 == 0:
-            print('processing (%04d)-th image... %s' % (i, img_path))
+            print('processing (%04d)-th image... %s' % (i, sig_path))
         #save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
-        save_specs(webpage, signals, sig_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
+        save_signals(webpage, signals, sig_path, vocoder = vocoder)
     # save the website
     webpage.save()

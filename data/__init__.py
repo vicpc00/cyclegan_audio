@@ -105,7 +105,8 @@ def collate_fn(data):
         tmp = {key: [dic[key] for dic in data_dict[k]] for key in data_dict[k][0]}
         data_dict[k] = tmp
             
-        for m in ['tf_rep']:
+        #for m in ['tf_rep']:
+        for m in data_dict[k].keys():
             data_dict[k][m] = [torch.as_tensor(signal).type(torch.FloatTensor) for signal in data_dict[k][m]]
             
             #TODO Pad tensors when they have different sizes
