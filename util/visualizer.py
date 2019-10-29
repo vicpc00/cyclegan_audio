@@ -98,9 +98,9 @@ def save_signals(webpage, signals, sig_path, vocoder):
 
     for label, sig_data in signals.items():
         #TODO Handle batch > 1
-        sig_data['tf_rep'] = np.squeeze(sig_data['tf_rep'].cpu().double().numpy())
-        sig_data['f0'] = np.squeeze(sig_data['f0'].cpu().double().numpy())
-        sig_data['ap'] = np.squeeze(sig_data['ap'].cpu().double().numpy())
+        sig_data['tf_rep'] = np.squeeze(sig_data['tf_rep'].cpu().double().numpy(), axis=(0,1))
+        sig_data['f0'] = np.squeeze(sig_data['f0'].cpu().double().numpy(), axis=(0,1,2))
+        sig_data['ap'] = np.squeeze(sig_data['ap'].cpu().double().numpy(), axis=(0,1))
         #sig_data['f0'] = sig_data['f0'][0]
         #sig_data['ap'] = sig_data['ap'][0]
         spec = sig_data['tf_rep']

@@ -34,6 +34,9 @@ class WorldVocoder(BaseVocoder):
             
         self.rep_dim = self.mel_dim
 
+        self.min_level_db = -100
+        self.ref_level_db = 20
+
     def analysis(self, in_filename):
         signal_dict = {}
 
@@ -44,25 +47,43 @@ class WorldVocoder(BaseVocoder):
                     channels_in_octave=2,
                     frame_period=1000*self.hop_len,
                     speed=1)
-        signal_dict['f0'] = pw.stonemask(sig, _f0, t, self.sr)
-        spec  = pw.cheaptrick(sig, signal_dict['f0'], t, sr, f0_floor=self.f0_floor,fft_size=self.nfft)
-        signal_dict['ap'] = pw.d4c(sig, signal_dict['f0'], t, sr,fft_size=self.nfft).T
+        f0 = pw.stonemask(sig, _f0, t, self.sr)
+        spec  = pw.cheaptrick(sig, f0, t, sr, f0_floor=self.f0_floor,fft_size=self.nfft)
+        ap = pw.d4c(sig, f0, t, sr,fft_size=self.nfft)
+
+        spec = pw.code_spectral_envelope(spec,self.sr,self.mel_dim).T
+        spec = (spec -self.ref_level_db -self.min_level_db)/-self.min_level_db
+        spec = np.clip(spec,0,1)
         
-        signal_dict['tf_rep'] = pw.code_spectral_envelope(spec,self.sr,self.mel_dim).T
-        signal_dict['f0'] = signal_dict['f0'][:,np.newaxis].T
+        ap = pw.code_aperiodicity(ap,self.sr)
+
+        if ap.ndim == 1:
+            ap = ap[:,np.newaxis].T
+        else:
+            ap = ap.T
+        
+        f0[f0 > 0] = np.log(f0[f0 > 0])
+
+        signal_dict['tf_rep'] = spec
+        signal_dict['f0'] = f0[:,np.newaxis].T
+        signal_dict['ap'] = ap
 
         return signal_dict
         
         
     def synthesize(self, signal_dict, out_filename):
-        #signal_dict = np.load(in_filename)
+        spec = np.ascontiguousarray(signal_dict['tf_rep'].T)
+        f0 = np.ascontiguousarray(signal_dict['f0'].T)
+        ap = np.ascontiguousarray(signal_dict['ap'].T)
 
-        signal_dict['tf_rep'] = np.ascontiguousarray(signal_dict['tf_rep'].T)
-        signal_dict['f0'] = np.ascontiguousarray(signal_dict['f0'].T)
-        signal_dict['ap'] = np.ascontiguousarray(signal_dict['ap'].T)
-
-        spec = pw.decode_spectral_envelope(signal_dict['tf_rep'],self.sr,self.nfft)
-        sig_rec = pw.synthesize(signal_dict['f0'], spec, signal_dict['ap'], self.sr, 1000*self.hop_len)
+        spec = spec*(-self.min_level_db)+self.min_level_db+self.ref_level_db
+        spec = pw.decode_spectral_envelope(spec,self.sr,self.nfft)
+        
+        f0[f0 > 0] = np.exp(f0[f0 > 0])
+        
+        ap = pw.decode_aperiodicity(ap,self.sr,self.nfft)
+        
+        sig_rec = pw.synthesize(f0, spec, ap, self.sr, 1000*self.hop_len)
             
         #librosa.output.write_wav(out_filename, sig_rec, self.sr)
         sf.write(out_filename, sig_rec, self.sr)

@@ -1,8 +1,10 @@
 import time
+import os
 from options.train_options import TrainOptions
 from data import create_dataloader
 from models import create_model
 from util.visualizer import Visualizer
+import torch
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()
@@ -32,7 +34,7 @@ if __name__ == '__main__':
             data_spec = data.copy()
             data_spec['A'] = data_spec['A']['tf_rep']
             data_spec['B'] = data_spec['B']['tf_rep']
-            
+            #print(torch.max(data_spec['A']),torch.min(data_spec['A']),torch.max(data_spec['B']),torch.min(data_spec['B']))
             model.set_input(data_spec)
             model.optimize_parameters()
 
@@ -63,3 +65,24 @@ if __name__ == '__main__':
         print('End of epoch %d / %d \t Time Taken: %d sec' %
               (epoch, opt.niter + opt.niter_decay, time.time() - epoch_start_time))
         model.update_learning_rate()
+
+    convert_f0 = True
+    if convert_f0:
+        f0_stats = {'A':{'mean':0,'var':0,'N':0},'B':{'mean':0,'var':0,'N':0}}
+        for i,data in enumerate(dataset):
+            for spk in ['A','B']:
+                f0_sig = data[spk]['f0'].squeeze()
+                for j in range(f0_sig.shape[0]):
+                    if f0_sig[j] == 0:
+                        continue
+                    f0_stats[spk]['N'] = f0_stats[spk]['N'] + 1
+                    m_ant = f0_stats[spk]['mean']
+                    f0_stats[spk]['mean'] += (f0_sig[j] - m_ant)/f0_stats[spk]['N'] #M_k = M_{k-1} + (x_k - M_{k-1})/k
+                    f0_stats[spk]['var'] += (f0_sig[j] - m_ant)*(f0_sig[j] - f0_stats[spk]['mean']) #S_k = S_{k-1} + (x_k - M_{k-1})*(x_k - M_k)
+
+        f0_stats['A']['var'] = f0_stats['A']['var']/f0_stats['A']['N']
+        f0_stats['B']['var'] = f0_stats['B']['var']/f0_stats['B']['N']
+
+        print(f0_stats)
+
+        torch.save(f0_stats,os.path.join(opt.checkpoints_dir, opt.name, 'f0_stats'))
